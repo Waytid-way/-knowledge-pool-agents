@@ -35,6 +35,13 @@ jobs:
           python-version: "3.12"
           enable-cache: true
       - run: uv sync --all-extras
+      - name: Capture Ruff diagnostics
+        run: uv run ruff check . > ruff-diagnostics.txt 2>&1 || true
+      - name: Upload Ruff diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: task3-ruff-diagnostics
+          path: ruff-diagnostics.txt
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy src
