@@ -128,3 +128,21 @@ def test_all_repository_write_methods_require_tenant_and_pool_context() -> None:
             parameter = parameters[name]
             assert parameter.kind is inspect.Parameter.KEYWORD_ONLY, method.__qualname__
             assert parameter.default is inspect.Parameter.empty, method.__qualname__
+
+
+def test_relationship_foreign_keys_target_canonical_object_table() -> None:
+    from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
+
+    table = Base.metadata.tables["relationships"]
+    targets = {
+        element.target_fullname
+        for constraint in table.foreign_key_constraints
+        for element in constraint.elements
+    }
+
+    assert targets == {
+        "knowledge_objects.tenant_id",
+        "knowledge_objects.pool_id",
+        "knowledge_objects.object_id",
+    }

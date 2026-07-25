@@ -68,7 +68,7 @@ class RelationshipRow(TimestampMixin, Base):
             ["tenant_id", "pool_id", "source_object_id"],
             [
                 "knowledge_objects.tenant_id",
-                "knowlede_objects.pool_id",
+                "knowledge_objects.pool_id",
                 "knowledge_objects.object_id",
             ],
             ondelete="CASCADE",
