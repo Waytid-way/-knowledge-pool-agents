@@ -17,7 +17,7 @@ VectorFactory = Callable[[int], TypeEngine[Any]]
 
 try:
     _pg_vector_factory = cast(
-        VectorFactory, getattr(import_module("pgvector.sqlalchemy"), "Vector")
+        VectorFactory, import_module("pgvector.sqlalchemy").Vector
     )
 except ImportError:  # pragma: no cover - production dependency is installed by uv
     _pg_vector_factory = None
