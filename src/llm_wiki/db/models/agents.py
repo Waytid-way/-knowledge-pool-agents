@@ -63,6 +63,12 @@ class PromotionCandidateRow(TimestampMixin, Base):
             ["tenant_id", "pool_id"],
             ["knowledge_pools.tenant_id", "knowledge_pools.pool_id"],
             ondelete="CASCADE",
+            name="fk_promotion_candidates_source_pool",
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "target_pool_id"],
+            ["knowledge_pools.tenant_id", "knowledge_pools.pool_id"],
+            name="fk_promotion_candidates_target_pool",
         ),
     )
 
