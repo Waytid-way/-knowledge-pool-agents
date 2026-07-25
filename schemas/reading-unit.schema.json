@@ -1,0 +1,67 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "continuation_from": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Continuation From"
+    },
+    "continuation_to": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Continuation To"
+    },
+    "document_id": {
+      "minLength": 1,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "expected_elements": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Expected Elements",
+      "type": "object"
+    },
+    "pages": {
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 1,
+      "title": "Pages",
+      "type": "array"
+    },
+    "title": {
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "unit_id": {
+      "minLength": 1,
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "unit_id",
+    "document_id",
+    "title",
+    "pages"
+  ],
+  "title": "ReadingUnit",
+  "type": "object"
+}

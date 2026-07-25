@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "DocumentStatus": {
+      "enum": [
+        "registered",
+        "stored",
+        "profiling",
+        "profiled",
+        "processing",
+        "verified",
+        "failed",
+        "quarantined"
+      ],
+      "title": "DocumentStatus",
+      "type": "string"
+    },
+    "PoolScope": {
+      "enum": [
+        "global",
+        "organization",
+        "domain",
+        "project",
+        "task"
+      ],
+      "title": "PoolScope",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "content_hash": {
+      "minLength": 1,
+      "title": "Content Hash",
+      "type": "string"
+    },
+    "document_id": {
+      "minLength": 1,
+      "title": "Document Id",
+      "type": "string"
+    },
+    "filename": {
+      "minLength": 1,
+      "title": "Filename",
+      "type": "string"
+    },
+    "media_type": {
+      "default": "application/pdf",
+      "title": "Media Type",
+      "type": "string"
+    },
+    "page_count": {
+      "minimum": 1,
+      "title": "Page Count",
+      "type": "integer"
+    },
+    "pool_id": {
+      "minLength": 1,
+      "title": "Pool Id",
+      "type": "string"
+    },
+    "project_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Project Id"
+    },
+    "scope": {
+      "$ref": "#/$defs/PoolScope"
+    },
+    "status": {
+      "$ref": "#/$defs/DocumentStatus",
+      "default": "registered"
+    }
+  },
+  "required": [
+    "document_id",
+    "pool_id",
+    "scope",
+    "filename",
+    "content_hash",
+    "page_count"
+  ],
+  "title": "SourceDocument",
+  "type": "object"
+}
