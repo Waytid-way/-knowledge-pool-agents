@@ -8,13 +8,17 @@ import pytest_asyncio
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from llm_wiki.db.models import (
+    DocumentPageRow,
     DocumentRow,
     KnowledgeObjectRow,
     KnowledgePoolRow,
     ProjectRow,
+    PromotionCandidateRow,
+    ReadingUnitRow,
     TenantRow,
 )
 from llm_wiki.db.repositories.knowledge import KnowledgeObjectRepository
@@ -197,3 +201,84 @@ async def test_workflow_transition_uses_optimistic_version(db_session: AsyncSess
     assert updated.version == 2
     assert updated.state == "profiled"
     assert stale is None
+
+
+@pytest.mark.asyncio
+async def test_promotion_target_pool_must_exist_in_same_tenant(
+    db_session: AsyncSession,
+) -> None:
+    await seed_scope(db_session)
+    db_session.add(
+        PromotionCandidateRow(
+            tenant_id="tenant-a",
+            pool_id="project-alpha",
+            candidate_id="promotion-a",
+            source_object_id="object-a",
+            target_pool_id="missing-pool",
+            status="candidate",
+            justification={},
+        )
+    )
+
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
+
+
+@pytest.mark.asyncio
+async def test_page_cannot_reference_reading_unit_from_another_document(
+    db_session: AsyncSession,
+) -> None:
+    await seed_scope(db_session)
+    db_session.add_all(
+        [
+            DocumentRow(
+                tenant_id="tenant-a",
+                pool_id="project-alpha",
+                document_id="doc-a",
+                project_id="alpha",
+                filename="a.pdf",
+                media_type="application/pdf",
+                content_hash="hash-a",
+                page_count=1,
+                status="registered",
+            ),
+            DocumentRow(
+                tenant_id="tenant-a",
+                pool_id="project-alpha",
+                document_id="doc-b",
+                project_id="alpha",
+                filename="b.pdf",
+                media_type="application/pdf",
+                content_hash="hash-b",
+                page_count=1,
+                status="registered",
+            ),
+        ]
+    )
+    await db_session.flush()
+    db_session.add(
+        ReadingUnitRow(
+            tenant_id="tenant-a",
+            pool_id="project-alpha",
+            unit_id="unit-b",
+            document_id="doc-b",
+            title="B unit",
+            pages=[1],
+            expected_elements={},
+        )
+    )
+    await db_session.flush()
+    db_session.add(
+        DocumentPageRow(
+            tenant_id="tenant-a",
+            pool_id="project-alpha",
+            document_id="doc-a",
+            page_number=1,
+            status="discovered",
+            section_path=[],
+            reading_unit_id="unit-b",
+        )
+    )
+
+    with pytest.raises(IntegrityError):
+        await db_session.flush()
