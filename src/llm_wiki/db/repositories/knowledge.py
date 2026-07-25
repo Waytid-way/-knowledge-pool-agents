@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -62,7 +62,7 @@ class KnowledgeObjectRepository:
             KnowledgeObjectRow.pool_id == pool_id,
             KnowledgeObjectRow.object_id == object_id,
         )
-        return await self._session.scalar(statement)
+        return cast(KnowledgeObjectRow | None, await self._session.scalar(statement))
 
     async def list_by_pool(self, *, tenant_id: str, pool_id: str) -> list[KnowledgeObjectRow]:
         statement = (

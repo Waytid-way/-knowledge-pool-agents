@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,7 +45,7 @@ class WorkflowRunRepository:
             WorkflowRunRow.pool_id == pool_id,
             WorkflowRunRow.run_id == run_id,
         )
-        return await self._session.scalar(statement)
+        return cast(WorkflowRunRow | None, await self._session.scalar(statement))
 
     async def transition(
         self,
