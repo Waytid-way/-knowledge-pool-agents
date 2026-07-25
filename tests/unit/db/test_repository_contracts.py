@@ -51,8 +51,8 @@ def test_repository_get_cannot_be_called_without_scope_context() -> None:
 
 
 def test_metadata_contains_all_planned_persistence_tables() -> None:
-    from llm_wiki.db.base import Base
     from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
 
     expected = {
         "tenants",
@@ -79,8 +79,8 @@ def test_metadata_contains_all_planned_persistence_tables() -> None:
 
 
 def test_scoped_tables_always_include_tenant_and_pool_columns() -> None:
-    from llm_wiki.db.base import Base
     from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
 
     unscoped = {"tenants", "projects"}
     for table_name, table in Base.metadata.tables.items():
@@ -93,8 +93,8 @@ def test_scoped_tables_always_include_tenant_and_pool_columns() -> None:
 def test_unique_constraints_never_drop_tenant_context() -> None:
     from sqlalchemy import UniqueConstraint
 
-    from llm_wiki.db.base import Base
     from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
 
     for table in Base.metadata.tables.values():
         for constraint in table.constraints:
