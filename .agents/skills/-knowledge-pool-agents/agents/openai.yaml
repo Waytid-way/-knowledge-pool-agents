@@ -1,0 +1,6 @@
+interface:
+  display_name: "Knowledge Pool Agents"
+  short_description: "Repo-specific patterns and workflows for -knowledge-pool-agents"
+  default_prompt: "Use the -knowledge-pool-agents repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
