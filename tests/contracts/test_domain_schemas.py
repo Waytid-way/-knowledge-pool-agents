@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-from scripts.export_schemas import export_schemas
 
 from llm_wiki.domain.agents import AgentResult, TaskEnvelope
 from llm_wiki.domain.documents import PageElement, PageManifest, ReadingUnit
@@ -17,6 +16,7 @@ from llm_wiki.domain.knowledge import KnowledgeObject, QuestionObject, Relations
 from llm_wiki.domain.pools import KnowledgePool
 from llm_wiki.domain.reasoning import ReasoningTrace
 from llm_wiki.domain.workflows import WorkflowRun
+from llm_wiki.schema_export import export_schemas
 
 
 def test_knowledge_object_requires_pool_and_source() -> None:
