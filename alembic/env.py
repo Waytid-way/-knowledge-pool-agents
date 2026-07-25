@@ -9,7 +9,7 @@ from alembic import context
 from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from llm_wiki.db import models as _models
+from llm_wiki.db import models as _models  # noqa: F401
 from llm_wiki.db.base import Base
 
 config = context.config
