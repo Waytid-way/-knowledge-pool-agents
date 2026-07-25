@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,4 +50,4 @@ class DocumentRepository:
             DocumentRow.pool_id == pool_id,
             DocumentRow.document_id == document_id,
         )
-        return await self._session.scalar(statement)
+        return cast(DocumentRow | None, await self._session.scalar(statement))
