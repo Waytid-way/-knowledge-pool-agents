@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
 from typing import Any
 
 import pytest
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects import postgresql
 
 from llm_wiki.db.repositories.knowledge import KnowledgeObjectRepository
@@ -91,8 +93,6 @@ def test_scoped_tables_always_include_tenant_and_pool_columns() -> None:
 
 
 def test_unique_constraints_never_drop_tenant_context() -> None:
-    from sqlalchemy import UniqueConstraint
-
     from llm_wiki.db import models as _models  # noqa: F401
     from llm_wiki.db.base import Base
 
@@ -128,3 +128,78 @@ def test_all_repository_write_methods_require_tenant_and_pool_context() -> None:
             parameter = parameters[name]
             assert parameter.kind is inspect.Parameter.KEYWORD_ONLY, method.__qualname__
             assert parameter.default is inspect.Parameter.empty, method.__qualname__
+
+
+def test_relationship_foreign_keys_target_canonical_object_table() -> None:
+    from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
+
+    table = Base.metadata.tables["relationships"]
+    targets = {
+        element.target_fullname
+        for constraint in table.foreign_key_constraints
+        for element in constraint.elements
+    }
+
+    assert targets == {
+        "knowledge_objects.tenant_id",
+        "knowledge_objects.pool_id",
+        "knowledge_objects.object_id",
+    }
+
+
+def test_initial_migration_is_frozen_and_does_not_use_live_metadata() -> None:
+    migration = Path("alembic/versions/0001_scoped_persistence.py").read_text()
+
+    assert "Base.metadata" not in migration
+    assert "create_all" not in migration
+    assert "drop_all" not in migration
+    assert migration.count("op.create_table(") == 18
+    assert migration.count("op.drop_table(") == 18
+
+
+def test_promotion_target_pool_is_tenant_scoped() -> None:
+    from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
+
+    table = Base.metadata.tables["promotion_candidates"]
+    constraints = {constraint.name: constraint for constraint in table.foreign_key_constraints}
+    target = constraints["fk_promotion_candidates_target_pool"]
+
+    assert [column.name for column in target.columns] == ["tenant_id", "target_pool_id"]
+    assert [element.target_fullname for element in target.elements] == [
+        "knowledge_pools.tenant_id",
+        "knowledge_pools.pool_id",
+    ]
+
+
+def test_document_page_reading_unit_reference_preserves_document_scope() -> None:
+    from llm_wiki.db import models as _models  # noqa: F401
+    from llm_wiki.db.base import Base
+
+    pages = Base.metadata.tables["document_pages"]
+    constraint = next(
+        item
+        for item in pages.foreign_key_constraints
+        if item.name == "fk_document_pages_reading_unit"
+    )
+    assert [column.name for column in constraint.columns] == [
+        "tenant_id",
+        "pool_id",
+        "document_id",
+        "reading_unit_id",
+    ]
+    assert [element.target_fullname for element in constraint.elements] == [
+        "reading_units.tenant_id",
+        "reading_units.pool_id",
+        "reading_units.document_id",
+        "reading_units.unit_id",
+    ]
+
+    reading_units = Base.metadata.tables["reading_units"]
+    unique_columns = {
+        tuple(column.name for column in item.columns)
+        for item in reading_units.constraints
+        if isinstance(item, UniqueConstraint)
+    }
+    assert ("tenant_id", "pool_id", "document_id", "unit_id") in unique_columns
