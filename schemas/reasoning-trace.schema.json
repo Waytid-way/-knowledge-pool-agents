@@ -1,0 +1,124 @@
+{
+  "$defs": {
+    "ReasoningMode": {
+      "enum": [
+        "deductive",
+        "inductive",
+        "abductive",
+        "modal",
+        "fuzzy",
+        "dialectical",
+        "informal"
+      ],
+      "title": "ReasoningMode",
+      "type": "string"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "minLength": 1,
+          "title": "Document Id",
+          "type": "string"
+        },
+        "element_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Element Ids",
+          "type": "array"
+        },
+        "pages": {
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Pages",
+          "type": "array"
+        }
+      },
+      "required": [
+        "document_id",
+        "pages"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "minLength": 1,
+      "title": "Decision",
+      "type": "string"
+    },
+    "facts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Facts",
+      "type": "array"
+    },
+    "hypotheses": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "modes": {
+      "items": {
+        "$ref": "#/$defs/ReasoningMode"
+      },
+      "title": "Modes",
+      "type": "array"
+    },
+    "outcome": {
+      "minLength": 1,
+      "title": "Outcome",
+      "type": "string"
+    },
+    "rules": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Rules",
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_refs": {
+      "items": {
+        "$ref": "#/$defs/SourceRef"
+      },
+      "minItems": 1,
+      "title": "Source Refs",
+      "type": "array"
+    },
+    "task_id": {
+      "minLength": 1,
+      "title": "Task Id",
+      "type": "string"
+    },
+    "trace_id": {
+      "minLength": 1,
+      "title": "Trace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "trace_id",
+    "task_id",
+    "facts",
+    "rules",
+    "hypotheses",
+    "decision",
+    "outcome",
+    "source_refs"
+  ],
+  "title": "ReasoningTrace",
+  "type": "object"
+}

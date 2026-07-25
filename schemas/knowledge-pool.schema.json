@@ -1,0 +1,62 @@
+{
+  "$defs": {
+    "PoolScope": {
+      "enum": [
+        "global",
+        "organization",
+        "domain",
+        "project",
+        "task"
+      ],
+      "title": "PoolScope",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "parent_pool_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Parent Pool Ids",
+      "type": "array"
+    },
+    "pool_id": {
+      "minLength": 1,
+      "title": "Pool Id",
+      "type": "string"
+    },
+    "project_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Project Id"
+    },
+    "scope": {
+      "$ref": "#/$defs/PoolScope"
+    },
+    "visibility": {
+      "default": "private",
+      "title": "Visibility",
+      "type": "string"
+    }
+  },
+  "required": [
+    "pool_id",
+    "name",
+    "scope"
+  ],
+  "title": "KnowledgePool",
+  "type": "object"
+}

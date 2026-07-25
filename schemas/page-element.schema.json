@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "ElementStatus": {
+      "enum": [
+        "discovered",
+        "queued",
+        "processing",
+        "processed",
+        "partially_processed",
+        "verified",
+        "needs_review",
+        "failed"
+      ],
+      "title": "ElementStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "element_id": {
+      "minLength": 1,
+      "title": "Element Id",
+      "type": "string"
+    },
+    "element_type": {
+      "minLength": 1,
+      "title": "Element Type",
+      "type": "string"
+    },
+    "label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Label"
+    },
+    "status": {
+      "$ref": "#/$defs/ElementStatus"
+    }
+  },
+  "required": [
+    "element_id",
+    "element_type",
+    "status"
+  ],
+  "title": "PageElement",
+  "type": "object"
+}
