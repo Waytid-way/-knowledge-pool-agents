@@ -14,6 +14,7 @@ from sqlalchemy.types import UserDefinedType
 JSON_VALUE: TypeEngine[Any] = JSON().with_variant(JSONB(), "postgresql")
 
 VectorFactory = Callable[[int], TypeEngine[Any]]
+_pg_vector_factory: VectorFactory | None
 
 try:
     _pg_vector_factory = cast(VectorFactory, import_module("pgvector.sqlalchemy").Vector)
