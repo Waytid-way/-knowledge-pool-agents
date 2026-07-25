@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import WorkflowState
 
-
 _ALLOWED_TRANSITIONS: dict[WorkflowState, set[WorkflowState]] = {
     WorkflowState.DOCUMENT_REGISTERED: {
         WorkflowState.PROFILED,
