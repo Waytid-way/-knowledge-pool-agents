@@ -42,6 +42,16 @@ class DocumentPageRow(TimestampMixin, Base):
             ["documents.tenant_id", "documents.pool_id", "documents.document_id"],
             ondelete="CASCADE",
         ),
+        ForeignKeyConstraint(
+            ["tenant_id", "pool_id", "document_id", "reading_unit_id"],
+            [
+                "reading_units.tenant_id",
+                "reading_units.pool_id",
+                "reading_units.document_id",
+                "reading_units.unit_id",
+            ],
+            name="fk_document_pages_reading_unit",
+        ),
     )
 
     tenant_id: Mapped[str] = mapped_column(String(128), primary_key=True)
@@ -88,6 +98,7 @@ class ReadingUnitRow(TimestampMixin, Base):
             ["documents.tenant_id", "documents.pool_id", "documents.document_id"],
             ondelete="CASCADE",
         ),
+        UniqueConstraint("tenant_id", "pool_id", "document_id", "unit_id"),
     )
 
     tenant_id: Mapped[str] = mapped_column(String(128), primary_key=True)
