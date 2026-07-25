@@ -16,9 +16,7 @@ JSON_VALUE: TypeEngine[Any] = JSON().with_variant(JSONB(), "postgresql")
 VectorFactory = Callable[[int], TypeEngine[Any]]
 
 try:
-    _pg_vector_factory = cast(
-        VectorFactory, import_module("pgvector.sqlalchemy").Vector
-    )
+    _pg_vector_factory = cast(VectorFactory, import_module("pgvector.sqlalchemy").Vector)
 except ImportError:  # pragma: no cover - production dependency is installed by uv
     _pg_vector_factory = None
 
