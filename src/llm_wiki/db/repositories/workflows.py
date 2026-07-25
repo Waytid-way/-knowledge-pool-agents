@@ -39,9 +39,7 @@ class WorkflowRunRepository:
         await self._session.flush()
         return row
 
-    async def get(
-        self, *, tenant_id: str, pool_id: str, run_id: str
-    ) -> WorkflowRunRow | None:
+    async def get(self, *, tenant_id: str, pool_id: str, run_id: str) -> WorkflowRunRow | None:
         statement = select(WorkflowRunRow).where(
             WorkflowRunRow.tenant_id == tenant_id,
             WorkflowRunRow.pool_id == pool_id,

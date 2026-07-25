@@ -40,9 +40,7 @@ class KnowledgePoolRepository:
         await self._session.flush()
         return row
 
-    async def get(
-        self, *, tenant_id: str, pool_id: str
-    ) -> KnowledgePoolRow | None:
+    async def get(self, *, tenant_id: str, pool_id: str) -> KnowledgePoolRow | None:
         statement = select(KnowledgePoolRow).where(
             KnowledgePoolRow.tenant_id == tenant_id,
             KnowledgePoolRow.pool_id == pool_id,

@@ -36,17 +36,7 @@ jobs:
           enable-cache: true
       - run: uv sync --all-extras
       - run: uv run ruff check .
-      - name: Capture Ruff format patch
-        run: |
-          uv run ruff format .
-          git diff -- '*.py' > ruff-format-task3.patch
-      - name: Upload Ruff format patch
-        uses: actions/upload-artifact@v4
-        with:
-          name: ruff-format-task3
-          path: ruff-format-task3.patch
-      - name: Fail on formatting drift
-        run: test ! -s ruff-format-task3.patch
+      - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run alembic upgrade head
       - run: uv run pytest -q

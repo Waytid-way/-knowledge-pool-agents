@@ -64,9 +64,7 @@ class KnowledgeObjectRepository:
         )
         return await self._session.scalar(statement)
 
-    async def list_by_pool(
-        self, *, tenant_id: str, pool_id: str
-    ) -> list[KnowledgeObjectRow]:
+    async def list_by_pool(self, *, tenant_id: str, pool_id: str) -> list[KnowledgeObjectRow]:
         statement = (
             select(KnowledgeObjectRow)
             .where(
