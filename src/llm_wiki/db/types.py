@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from importlib import import_module
 from typing import Any, cast
 
 from sqlalchemy import JSON
@@ -10,11 +12,18 @@ from sqlalchemy.sql.type_api import TypeEngine
 from sqlalchemy.types import UserDefinedType
 
 JSON_VALUE: TypeEngine[Any] = JSON().with_variant(JSONB(), "postgresql")
+VectorFactory = Callable[[int], TypeEngine[Any]]
 
-try:
-    from pgvector.sqlalchemy import Vector as _PgVector
-except ImportError:  # pragma: no cover - production dependency is installed by uv
-    _PgVector = None  # type: ignore[assignment]
+
+def _load_vector_factory() -> VectorFactory | None:
+    try:
+        module: Any = import_module("pgvector.sqlalchemy")
+    except ImportError:  # pragma: no cover - production dependency is installed by uv
+        return None
+    return cast(VectorFactory, module.Vector)
+
+
+_VECTOR_FACTORY = _load_vector_factory()
 
 
 class _FallbackVector(UserDefinedType[Any]):
@@ -32,6 +41,6 @@ class _FallbackVector(UserDefinedType[Any]):
 def vector_type(dimensions: int) -> TypeEngine[Any]:
     """Return pgvector's SQLAlchemy type with a compile-only local fallback."""
 
-    if _PgVector is None:
+    if _VECTOR_FACTORY is None:
         return _FallbackVector(dimensions)
-    return cast(TypeEngine[Any], _PgVector(dimensions))
+    return _VECTOR_FACTORY(dimensions)
