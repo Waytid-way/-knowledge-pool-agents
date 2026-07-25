@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16.14-bookworm
+    image: pgvector/pgvector:0.8.5-pg16-bookworm
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-llm_wiki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-llm_wiki}
