@@ -39,6 +39,13 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run alembic upgrade head
+      - name: Capture database test failure
+        run: uv run pytest -q > pytest-diagnostics.txt 2>&1 || true
+      - name: Upload database test failure
+        uses: actions/upload-artifact@v4
+        with:
+          name: task3-database-test-failure
+          path: pytest-diagnostics.txt
       - run: uv run pytest -q
       - run: uv run alembic downgrade base
       - run: uv run alembic upgrade head
