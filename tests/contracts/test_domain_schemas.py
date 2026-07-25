@@ -177,6 +177,7 @@ def test_workflow_run_rejects_direct_publication_from_registered_state() -> None
             requested_state=WorkflowState.PUBLISHED,
         )
 
+
 def test_workflow_run_allows_registered_to_profiled_transition() -> None:
     run = WorkflowRun(
         run_id="run_1",
@@ -197,6 +198,7 @@ def test_workflow_run_rejects_invalid_transition_with_message() -> None:
             current_state=WorkflowState.PROFILED,
             requested_state=WorkflowState.GRAPH_BUILT,
         )
+
 
 def test_exported_schemas_match_committed_files(tmp_path: Path) -> None:
     export_schemas(tmp_path)
