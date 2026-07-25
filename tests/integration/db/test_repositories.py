@@ -45,7 +45,11 @@ async def db_session(database_url: str) -> AsyncIterator[AsyncSession]:
     engine = create_async_engine(database_url)
     async with engine.connect() as connection:
         transaction = await connection.begin()
-        factory = async_sessionmaker(bind=connection, expire_on_commit=False)
+        factory = async_sessionmaker(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode="create_savepoint",
+        )
         async with factory() as session:
             yield session
         await transaction.rollback()
@@ -57,8 +61,20 @@ async def seed_scope(session: AsyncSession) -> None:
         [
             TenantRow(tenant_id="tenant-a", name="Tenant A"),
             TenantRow(tenant_id="tenant-b", name="Tenant B"),
+        ]
+    )
+    await session.flush()
+
+    session.add_all(
+        [
             ProjectRow(tenant_id="tenant-a", project_id="alpha", name="Alpha"),
             ProjectRow(tenant_id="tenant-b", project_id="alpha", name="Alpha"),
+        ]
+    )
+    await session.flush()
+
+    session.add_all(
+        [
             KnowledgePoolRow(
                 tenant_id="tenant-a",
                 pool_id="project-alpha",
