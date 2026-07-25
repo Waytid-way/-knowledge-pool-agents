@@ -31,6 +31,5 @@ async def session_scope(
 ) -> AsyncIterator[AsyncSession]:
     """Run one atomic unit of work and roll it back on failure."""
 
-    async with factory() as session:
-        async with session.begin():
-            yield session
+    async with factory() as session, session.begin():
+        yield session
