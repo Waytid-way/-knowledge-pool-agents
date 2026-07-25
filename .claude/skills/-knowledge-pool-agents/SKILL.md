@@ -24,7 +24,7 @@ This skill provides guidance on contributing to the `-knowledge-pool-agents` Pyt
 - Use **named exports** (explicitly listing what is exported).
   - Example:
     ```python
-    __all__ = ['KnowledgeAgent', 'DataPoolManager']
+    __all__ = ["KnowledgeAgent", "DataPoolManager"]
     ```
 
 ### Commit Messages

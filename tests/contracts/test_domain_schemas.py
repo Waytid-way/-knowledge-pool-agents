@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-from scripts.export_schemas import export_schemas
 
 from llm_wiki.domain.agents import AgentResult, TaskEnvelope
 from llm_wiki.domain.documents import PageElement, PageManifest, ReadingUnit
@@ -17,6 +16,7 @@ from llm_wiki.domain.knowledge import KnowledgeObject, QuestionObject, Relations
 from llm_wiki.domain.pools import KnowledgePool
 from llm_wiki.domain.reasoning import ReasoningTrace
 from llm_wiki.domain.workflows import WorkflowRun
+from llm_wiki.schema_export import export_schemas
 
 
 def test_knowledge_object_requires_pool_and_source() -> None:
@@ -177,6 +177,7 @@ def test_workflow_run_rejects_direct_publication_from_registered_state() -> None
             requested_state=WorkflowState.PUBLISHED,
         )
 
+
 def test_workflow_run_allows_registered_to_profiled_transition() -> None:
     run = WorkflowRun(
         run_id="run_1",
@@ -197,6 +198,7 @@ def test_workflow_run_rejects_invalid_transition_with_message() -> None:
             current_state=WorkflowState.PROFILED,
             requested_state=WorkflowState.GRAPH_BUILT,
         )
+
 
 def test_exported_schemas_match_committed_files(tmp_path: Path) -> None:
     export_schemas(tmp_path)
