@@ -19,6 +19,15 @@ jobs:
           enable-cache: true
       - run: uv sync --all-extras
       - run: uv run ruff check .
+      - name: Capture Ruff diagnostics
+        if: always()
+        run: uv run ruff check . --output-format=json > ruff-diagnostics.json || true
+      - name: Upload Ruff diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-diagnostics
+          path: ruff-diagnostics.json
       - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run pytest -q
