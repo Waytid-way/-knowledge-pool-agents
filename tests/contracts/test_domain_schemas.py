@@ -177,6 +177,26 @@ def test_workflow_run_rejects_direct_publication_from_registered_state() -> None
             requested_state=WorkflowState.PUBLISHED,
         )
 
+def test_workflow_run_allows_registered_to_profiled_transition() -> None:
+    run = WorkflowRun(
+        run_id="run_1",
+        document_id="doc_1",
+        pool_id="project-alpha",
+        current_state=WorkflowState.DOCUMENT_REGISTERED,
+        requested_state=WorkflowState.PROFILED,
+    )
+    assert run.requested_state is WorkflowState.PROFILED
+
+
+def test_workflow_run_rejects_invalid_transition_with_message() -> None:
+    with pytest.raises(ValidationError, match="transition from"):
+        WorkflowRun(
+            run_id="run_1",
+            document_id="doc_1",
+            pool_id="project-alpha",
+            current_state=WorkflowState.PROFILED,
+            requested_state=WorkflowState.GRAPH_BUILT,
+        )
 
 def test_exported_schemas_match_committed_files(tmp_path: Path) -> None:
     export_schemas(tmp_path)
