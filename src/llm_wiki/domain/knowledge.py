@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -22,7 +22,7 @@ class KnowledgeObject(BaseModel):
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
 
     @model_validator(mode="after")
-    def validate_scope(self) -> "KnowledgeObject":
+    def validate_scope(self) -> Self:
         if self.scope is PoolScope.PROJECT and not self.project_id:
             raise ValueError("project_id is required for project scope")
         if self.scope is PoolScope.GLOBAL and self.project_id is not None:
@@ -42,7 +42,7 @@ class Relationship(BaseModel):
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
 
     @model_validator(mode="after")
-    def reject_self_relationship(self) -> "Relationship":
+    def reject_self_relationship(self) -> Self:
         if self.source_object_id == self.target_object_id:
             raise ValueError("a relationship must connect different objects")
         return self
@@ -63,7 +63,7 @@ class QuestionObject(BaseModel):
     answerability: str = "fully_answerable"
 
     @model_validator(mode="after")
-    def validate_scope(self) -> "QuestionObject":
+    def validate_scope(self) -> Self:
         if self.scope is PoolScope.PROJECT and not self.project_id:
             raise ValueError("project_id is required for project scope")
         if self.scope is PoolScope.GLOBAL and self.project_id is not None:

@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import DocumentStatus, ElementStatus, PoolScope
@@ -17,7 +19,7 @@ class SourceDocument(BaseModel):
     status: DocumentStatus = DocumentStatus.REGISTERED
 
     @model_validator(mode="after")
-    def validate_scope(self) -> "SourceDocument":
+    def validate_scope(self) -> Self:
         if self.scope is PoolScope.PROJECT and not self.project_id:
             raise ValueError("project_id is required for project scope")
         if self.scope is PoolScope.GLOBAL and self.project_id is not None:
@@ -57,7 +59,7 @@ class ReadingUnit(BaseModel):
     continuation_to: str | None = None
 
     @model_validator(mode="after")
-    def validate_pages(self) -> "ReadingUnit":
+    def validate_pages(self) -> Self:
         if any(page < 1 for page in self.pages):
             raise ValueError("pages must contain positive page numbers")
         if len(set(self.pages)) != len(self.pages):

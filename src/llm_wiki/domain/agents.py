@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -19,7 +19,7 @@ class TaskEnvelope(BaseModel):
     max_attempts: int = Field(default=3, ge=1)
 
     @model_validator(mode="after")
-    def validate_attempts_and_pools(self) -> "TaskEnvelope":
+    def validate_attempts_and_pools(self) -> Self:
         if self.attempt > self.max_attempts:
             raise ValueError("attempt cannot exceed max_attempts")
         if len(set(self.allowed_read_pools)) != len(self.allowed_read_pools):

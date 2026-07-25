@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -11,7 +11,7 @@ class SourceRef(BaseModel):
     element_ids: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def validate_pages(self) -> "SourceRef":
+    def validate_pages(self) -> Self:
         if any(page < 1 for page in self.pages):
             raise ValueError("pages must contain positive page numbers")
         if len(set(self.pages)) != len(self.pages):

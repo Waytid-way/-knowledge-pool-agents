@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import PoolScope
@@ -14,7 +16,7 @@ class KnowledgePool(BaseModel):
     visibility: str = "private"
 
     @model_validator(mode="after")
-    def validate_scope(self) -> "KnowledgePool":
+    def validate_scope(self) -> Self:
         if self.scope is PoolScope.PROJECT and not self.project_id:
             raise ValueError("project_id is required for project scope")
         if self.scope is PoolScope.GLOBAL and self.project_id is not None:

@@ -1,3 +1,5 @@
+from typing import Self
+
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .enums import WorkflowState
@@ -65,7 +67,7 @@ class WorkflowRun(BaseModel):
     attempt: int = Field(default=1, ge=1)
 
     @model_validator(mode="after")
-    def validate_transition(self) -> "WorkflowRun":
+    def validate_transition(self) -> Self:
         allowed = _ALLOWED_TRANSITIONS.get(self.current_state, set())
         if self.requested_state not in allowed:
             if self.requested_state is WorkflowState.PUBLISHED:
