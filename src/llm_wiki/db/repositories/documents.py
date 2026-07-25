@@ -42,9 +42,7 @@ class DocumentRepository:
         await self._session.flush()
         return row
 
-    async def get(
-        self, *, tenant_id: str, pool_id: str, document_id: str
-    ) -> DocumentRow | None:
+    async def get(self, *, tenant_id: str, pool_id: str, document_id: str) -> DocumentRow | None:
         statement = select(DocumentRow).where(
             DocumentRow.tenant_id == tenant_id,
             DocumentRow.pool_id == pool_id,
