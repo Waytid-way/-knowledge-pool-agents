@@ -36,23 +36,7 @@ jobs:
           enable-cache: true
       - run: uv sync --all-extras
       - run: uv run ruff check .
-      - name: Capture formatter diagnostics
-        run: |
-          uv run ruff format --check . > ruff-format-diagnostics.txt 2>&1 || true
-          uv run ruff format .
-          git diff -- '*.py' > ruff-format.patch
-      - name: Capture mypy diagnostics
-        run: uv run mypy src > mypy-diagnostics.txt 2>&1 || true
-      - name: Upload quality diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: task3-quality-diagnostics
-          path: |
-            ruff-format-diagnostics.txt
-            ruff-format.patch
-            mypy-diagnostics.txt
-      - name: Fail on formatting drift
-        run: test ! -s ruff-format.patch
+      - run: uv run ruff format --check .
       - run: uv run mypy src
       - run: uv run alembic upgrade head
       - run: uv run pytest -q
