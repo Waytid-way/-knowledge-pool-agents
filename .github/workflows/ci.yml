@@ -19,13 +19,13 @@ jobs:
           enable-cache: true
       - run: uv sync --all-extras
       - run: uv run ruff check .
-      - run: uv run ruff format --check .
-      - run: uv run mypy src
-      - name: Capture pytest diagnostics
-        run: uv run pytest -q > pytest-diagnostics.txt 2>&1 || true
-      - name: Upload pytest diagnostics
+      - name: Capture Ruff format diagnostics
+        run: uv run ruff format --check . > ruff-format-diagnostics.txt 2>&1 || true
+      - name: Upload Ruff format diagnostics
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-diagnostics
-          path: pytest-diagnostics.txt
+          name: ruff-format-diagnostics
+          path: ruff-format-diagnostics.txt
+      - run: uv run ruff format --check .
+      - run: uv run mypy src
       - run: uv run pytest -q
