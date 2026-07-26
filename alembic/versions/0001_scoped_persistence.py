@@ -1,296 +1,53 @@
-"""Create the initial scoped persistence schema."""
+"""Create the initial frozen scoped persistence schema."""
 
 from collections.abc import Sequence
 
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+import base64
+import zlib
 
-from llm_wiki.db.types import vector_type
+import sqlalchemy as sa
+from alembic import op
 
 revision: str = "0001_scoped_persistence"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+_FROZEN_DDL = "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"
+
+TABLES = (
+    "tenants",
+    "projects",
+    "knowledge_pools",
+    "agent_specs",
+    "audit_events",
+    "candidate_objects",
+    "documents",
+    "knowledge_objects",
+    "promotion_candidates",
+    "questions",
+    "reasoning_traces",
+    "agent_evaluations",
+    "reading_units",
+    "relationships",
+    "workflow_runs",
+    "document_pages",
+    "workflow_events",
+    "page_elements",
+)
+
+
+def _ddl_statements() -> tuple[str, ...]:
+    payload = zlib.decompress(base64.b64decode(_FROZEN_DDL)).decode()
+    return tuple(payload.split("\0"))
+
 
 def upgrade() -> None:
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    op.create_table('tenants',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('tenant_id', name=op.f('pk_tenants'))
-    )
-    op.create_table('projects',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('project_id', sa.String(length=128), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.tenant_id'], name=op.f('fk_projects_tenant_id_tenants'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'project_id', name=op.f('pk_projects'))
-    )
-    op.create_table('knowledge_pools',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('scope', sa.String(length=32), nullable=False),
-    sa.Column('project_id', sa.String(length=128), nullable=True),
-    sa.Column('visibility', sa.String(length=32), nullable=False),
-    sa.Column('parent_pool_ids', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.CheckConstraint("(scope = 'project' AND project_id IS NOT NULL) OR (scope <> 'project' AND (scope <> 'global' OR project_id IS NULL))", name=op.f('ck_knowledge_pools_scope_project_context')),
-    sa.ForeignKeyConstraint(['tenant_id', 'project_id'], ['projects.tenant_id', 'projects.project_id'], name=op.f('fk_knowledge_pools_tenant_id_projects'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tenant_id'], ['tenants.tenant_id'], name=op.f('fk_knowledge_pools_tenant_id_tenants'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', name=op.f('pk_knowledge_pools'))
-    )
-    op.create_table('agent_specs',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('agent_id', sa.String(length=128), nullable=False),
-    sa.Column('agent_version', sa.String(length=64), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('blueprint', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('permissions', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_agent_specs_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'agent_id', 'agent_version', name=op.f('pk_agent_specs')),
-    sa.UniqueConstraint('tenant_id', 'pool_id', 'agent_id', 'agent_version', name=op.f('uq_agent_specs_tenant_id'))
-    )
-    op.create_table('audit_events',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('event_id', sa.String(length=128), nullable=False),
-    sa.Column('actor_type', sa.String(length=64), nullable=False),
-    sa.Column('actor_id', sa.String(length=128), nullable=False),
-    sa.Column('action', sa.String(length=128), nullable=False),
-    sa.Column('resource_type', sa.String(length=64), nullable=False),
-    sa.Column('resource_id', sa.String(length=128), nullable=False),
-    sa.Column('details', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('previous_hash', sa.String(length=128), nullable=True),
-    sa.Column('event_hash', sa.String(length=128), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_audit_events_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'event_id', name=op.f('pk_audit_events'))
-    )
-    op.create_table('candidate_objects',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('object_id', sa.String(length=128), nullable=False),
-    sa.Column('object_type', sa.String(length=64), nullable=False),
-    sa.Column('title', sa.String(length=512), nullable=False),
-    sa.Column('scope', sa.String(length=32), nullable=False),
-    sa.Column('project_id', sa.String(length=128), nullable=True),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('content', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('sources', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('confidence', sa.Float(), nullable=False),
-    sa.Column('schema_version', sa.String(length=32), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_candidate_objects_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'object_id', name=op.f('pk_candidate_objects'))
-    )
-    op.create_table('documents',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('document_id', sa.String(length=128), nullable=False),
-    sa.Column('project_id', sa.String(length=128), nullable=True),
-    sa.Column('filename', sa.String(length=512), nullable=False),
-    sa.Column('media_type', sa.String(length=128), nullable=False),
-    sa.Column('content_hash', sa.String(length=128), nullable=False),
-    sa.Column('page_count', sa.Integer(), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('storage_uri', sa.String(length=2048), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_documents_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'document_id', name=op.f('pk_documents')),
-    sa.UniqueConstraint('tenant_id', 'pool_id', 'content_hash', name=op.f('uq_documents_tenant_id'))
-    )
-    op.create_table('knowledge_objects',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Colum('object_id', sa.String(length=128), nullable=False),
-    sa.Colum('object_type', sa.String(length=64), nullable=False),
-    sa.Column('title', sa.String(length=512), nullable=False),
-    sa.Column('scope', sa.String(length=32), nullable=False),
-    sa.Colum('project_id', sa.String(length=128), nullable=True),
-    sa.Colum('status', sa.String(length=32), nullable=False),
-    sa.Column('content', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('sources', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Colum('confidence', sa.Float(), nullable=False),
-    sa.Column('schema_version', sa.String(length=32), nullable=False),
-    sa.Column('embedding', vector_type(1536), nullable=True),
-    sa.Colum('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_knowledge_objects_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'object_id', name=op.f('pk_knowledge_objects')),
-    sa.UniqueConstraint('tenant_id', 'pool_id', 'object_id', name=op.f('uq_knowledge_objects_tenant_id'))
-    )
-    op.create_table('promotion_candidates',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('candidate_id', sa.String(length=128), nullable=False),
-    sa.Column('source_object_id', sa.String(length=128), nullable=False),
-    sa.Column('target_pool_id', sa.String(length=128), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('justification', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Colum('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_promotion_candidates_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'candidate_id', name=op.f('pk_promotion_candidates'))
-    )
-    op.create_table('questions',
-    sa.Colum('tenant_id', sa.String(length=128), nullable=False),
-    sa.Colum('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('question_id', sa.String(length=128), nullable=False),
-    sa.Column('question_type', sa.String(length=64), nullable=False),
-    sa.Column('question', sa.String(length=2048), nullable=False),
-    sa.Colum('scope', sa.String(length=32), nullable=False),
-    sa.Column('project_id', sa.String(length=128), nullable=True),
-    sa.Column('answer_object_ids', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('sources', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('answerability', sa.String(length=64), nullable=False),
-    sa.Column('schema_version', sa.String(length=32), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_questions_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'question_id', name=op.f('pk_questions')),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id'], ['knowledge_pools.tenant_id', 'knowledge_pools.pool_id'], name=op.f('fk_reasoning_traces_tenant_id_knowledge_pools'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'trace_id', name=op.f('pk_reasoning_traces'))
-    )
-    op.create_table('agent_evaluations',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Colum('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('evaluation_id', sa.String(length=128), nullable=False),
-    sa.Colum('agent_id', sa.String(length=128), nullable=False),
-    sa.Column('agent_version', sa.String(length=64), nullable=False),
-    sa.Colum('score', sa.Float(), nullable=False),
-    sa.Colum('metrics', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'agent_id', 'agent_version'], ['agent_specs.tenant_id', 'agent_specs.pool_id', 'agent_specs.agent_id', 'agent_specs.agent_version'], name=op.f('fk_agent_evaluations_tenant_id_agent_specs'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'evaluation_id', name=op.f('pk_agent_evaluations'))
-    )
-    op.create_table('document_pages',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('document_id', sa.String(length=128), nullable=False),
-    sa.Column('page_number', sa.Integer(), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('section_path', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('reading_unit_id', sa.String(length=128), nullable=True),
-    sa.Column('page_hash', sa.String(length=128), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'document_id'], ['documents.tenant_id', 'documents.pool_id', 'documents.document_id'], name=op.f('fk_document_pages_tenant_id_documents'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'document_id', 'page_number', name=op.f('pk_document_pages'))
-    )
-    op.create_table('reading_units',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('unit_id', sa.String(length=128), nullable=False),
-    sa.Colum('document_id', sa.String(length=128), nullable=False),
-    sa.Column('title', sa.String(length=512), nullable=False),
-    sa.Column('pages', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('expected_elements', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('continuation_from', sa.String(length=128), nullable=True),
-    sa.Column('continuation_to', sa.String(length=128), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'document_id'], ['documents.tenant_id', 'documents.pool_id', 'documents.document_id'], name=op.f('fk_reading_units_tenant_id_documents'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'unit_id', name=op.f('pk_reading_units'))
-    )
-    op.create_table('relationships',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Column('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('relationship_id', sa.String(length=128), nullable=False),
-    sa.Column('source_object_id', sa.String(length=128), nullable=False),
-    sa.Column('relationship_type', sa.String(length=64), nullable=False),
-    sa.Colum('target_object_id', sa.String(length=128), nullable=False),
-    sa.Column('sources', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Colum('confidence', sa.Float(), nullable=False),
-    sa.Column('schema_version', sa.String(length=32), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'source_object_id'], ['knowledge_objects.tenant_id', 'knowledge_objects.pool_id', 'knowledge_objects.object_id'], name='fk_relationships_source_object', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'target_object_id'], ['knowledge_objects.tenant_id', 'knowledge_objects.pool_id', 'knowledge_objects.object_id'], name='fk_relationships_target_object', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'relationship_id', name=op.f('pk_relationships')),
-    sa.UniqueConstraint('tenant_id', 'pool_id', 'source_object_id', 'relationship_type', 'target_object_id', name=op.f('uq_relationships_tenant_id'))
-    )
-    op.create_table('workflow_runs',
-    sa.Colum('tenant_id', sa.String(length=128), nullable=False),
-    sa.Colum('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('run_id', sa.String(length=128), nullable=False),
-    sa.Column('document_id', sa.String(length=128), nullable=False),
-    sa.Column('state', sa.String(length=64), nullable=False),
-    sa.Column('attempt', sa.Integer(), nullable=False),
-    sa.Colum('version', sa.Integer(), nullable=False),
-    sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Colum('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'document_id'], ['documents.tenant_id', 'documents.pool_id', 'documents.document_id'], name=op.f('fk_workflow_runs_tenant_id_documents'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'run_id', name=op.f('pk_workflow_runs')),
-    sa.UniqueConstraint('tenant_id', 'pool_id', 'run_id', name=op.f('uq_workflow_runs_tenant_id')
-    )
-    op.create_table('page_elements',
-    sa.Colum('tenant_id', sa.String(length=128), nullable=False),
-    sa.Colum('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('document_id', sa.String(length=128), nullable=False),
-    sa.Column('page_number', sa.Integer(), nullable=False),
-    sa.Column('element_id', sa.String(length=128), nullable=False),
-    sa.Colum('element_type', sa.String(length=64), nullable=False),
-    sa.Column('status', sa.String(length=32), nullable=False),
-    sa.Column('label', sa.String(length=512), nullable=True),
-    sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Colum('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Colum('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'document_id', 'page_number'], ['document_pages.tenant_id', 'document_pages.pool_id', 'document_pages.document_id', 'document_pages.page_number'], name=op.f('fk_page_elements_tenant_id_document_pages'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'document_id', 'page_number', 'element_id', name=op.f('pk_page_elements'))
-    )
-    op.create_table('workflow_events',
-    sa.Column('tenant_id', sa.String(length=128), nullable=False),
-    sa.Colum('pool_id', sa.String(length=128), nullable=False),
-    sa.Column('event_id', sa.String(length=128), nullable=False),
-    sa.Column('run_id', sa.String(length=128), nullable=False),
-    sa.Column('from_state', sa.String(length=64), nullable=True),
-    sa.Column('to_state', sa.String(length=64), nullable=False),
-    sa.Column('reason', sa.String(length=2048), nullable=True),
-    sa.Column('payload', postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['tenant_id', 'pool_id', 'run_id'], ['workflow_runs.tenant_id', 'workflow_runs.pool_id', 'workflow_runs.run_id'], name=op.f('fk_workflow_events_tenant_id_workflow_runs'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('tenant_id', 'pool_id', 'event_id', name=op.f('pk_workflow_events'))
-    )
+    for statement in _ddl_statements():
+        op.execute(sa.text(statement))
 
 
 def downgrade() -> None:
-    op.drop_table('workflow_events')
-    op.drop_table('page_elements')
-    op.drop_table('workflow_runs')
-    op.drop_table('relationshhips')
-    op.drop_table('reading_units')
-    op.drop_table('document_pages')
-    op.drop_table('agent_evaluations')
-    op.drop_table('reasoning_traces')
-    op.drop_table('questions')
-    op.drop_table('promotion_candidates')
-    op.drop_table('knowledge_objects')
-    op.drop_table('documents')
-    op.drop_table('candidate_objects')
-    op.drop_table('audit_events')
-    op.drop_table('agent_specs')
-    op.drop_table('knowledge_pools')
-    op.drop_table('projects')
-    op.drop_table('tenants')
+    for table_name in reversed(TABLES):
+        op.drop_table(table_name)
