@@ -35,11 +35,24 @@ jobs:
           python-version: "3.12"
           enable-cache: true
       - run: uv sync --all-extras
-      - run: tar --exclude=.git --exclude=.venv -czf branch-source.tar.gz .
-      - uses: actions/upload-artifact@v4
+      - name: Render frozen PostgreSQL schema
+        run: |
+          uv run python - <<'PY' > frozen-schema.sql
+          from sqlalchemy.dialects import postgresql
+          from sqlalchemy.schema import CreateTable
+          from llm_wiki.db import models as _models  # noqa: F401
+          from llm_wiki.db.base import Base
+
+          dialect = postgresql.dialect()
+          for table in Base.metadata.sorted_tables:
+              print(str(CreateTable(table).compile(dialect=dialect)).strip())
+              print(";")
+          PY
+      - name: Upload frozen PostgreSQL schema
+        uses: actions/upload-artifact@v4
         with:
-          name: task3-branch-source
-          path: branch-source.tar.gz
+          name: task3-frozen-schema
+          path: frozen-schema.sql
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy src
