@@ -29,3 +29,21 @@ make down
 ```
 
 The Temporal `auto-setup` image is used only for the local development loop. Production deployment design is deferred to the production-hardening release.
+
+## Database migrations
+
+The persistence layer uses Alembic and PostgreSQL with pgvector. After the local services are healthy:
+
+```bash
+make migrate
+make test-integration
+```
+
+To verify a migration round trip locally:
+
+```bash
+make migrate-down
+make migrate
+```
+
+Repository reads and writes always require explicit tenant and Knowledge Pool context.
