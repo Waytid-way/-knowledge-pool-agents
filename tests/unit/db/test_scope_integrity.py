@@ -52,7 +52,8 @@ def test_reading_unit_target_columns_are_unique() -> None:
     assert ("tenant_id", "pool_id", "document_id", "unit_id") in unique_columns
 
 
-def test_scope_integrity_migration_is_incremental() -> None:
-    migration = Path("alembic/versions/0002_scope_integrity.py").read_text()
-    assert 'down_revision: str | None = "0001_scoped_persistence"' in migration
+def test_initial_migration_is_frozen_and_model_independent() -> None:
+    migration = Path("alembic/versions/0001_scoped_persistence.py").read_text()
+    assert "_FROZEN_DDL" in migration
     assert "Base.metadata" not in migration
+    assert "llm_wiki.db.models" not in migration
